@@ -63,9 +63,11 @@ class AppGenericHandler(object):
         webhelp.response_is_json()
         try:
             with App(appid) as app:
+                self.check_keys(app)
                 return json.dumps(self.run(app))
         except LeadUserError as e:
             return e.json()
+    def check_keys(self,app): pass
     def run(self, app):
         return {'error': 'TODO'}
 
@@ -77,6 +79,18 @@ class AppPOSTHandler(AppGenericHandler):
     def POST(self, appid):
         return self._generic_handler(appid)
 
+class RequireWriteKey(object):
+    def check_keys(self, app):
+        i = web.input('writeKey')
+        if i.writeKey != app.writeKey:
+            raise LeadUserError('invalid writeKey')
+
+class RequireAdminKey(object):
+    def check_keys(self, app):
+        i = web.input('adminKey')
+        if i.adminKey != app.adminKey:
+            raise LeadUserError('invalid adminKey')
+
 
 pages = web.template.render('templates/')
 class ReadUsageHandler(object):
@@ -86,12 +100,12 @@ class ReadUsageHandler(object):
 
 
 class ReadListHandler(AppGETHandler): pass
-class WriteAddHandler(AppPOSTHandler): pass
-class AdminAddFieldHandler(AppPOSTHandler): pass
-class AdminDelFieldHandler(AppPOSTHandler): pass
-class AdminDelScoreHandler(AppPOSTHandler): pass
-class AdminRestoreScoreHandler(AppPOSTHandler): pass
-class AdminDumpHandler(AppGETHandler): pass
+class WriteAddHandler(RequireWriteKey,AppPOSTHandler): pass
+class AdminAddFieldHandler(RequireAdminKey,AppPOSTHandler): pass
+class AdminDelFieldHandler(RequireAdminKey,AppPOSTHandler): pass
+class AdminDelScoreHandler(RequireAdminKey,AppPOSTHandler): pass
+class AdminRestoreScoreHandler(RequireAdminKey,AppPOSTHandler): pass
+class AdminDumpHandler(RequireAdminKey,AppGETHandler): pass
 
 
 urls = {
