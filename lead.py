@@ -5,12 +5,6 @@ import webhelp
 
 pages = web.template.render('templates/')
 
-urls = (
-    '/', 'usage',
-    '/get', 'get',
-    '/list', 'list',
-)
-
 class UsageHandler(object):
     def GET(self):
         return pages.usage()
@@ -27,9 +21,9 @@ class ListHandler(object):
         return "hello world"
 
 urls = {
-    '/':        UsageHandler,
-    '/get':     GetHandler,
-    '/list':    ListHandler,
+    '/':                        UsageHandler,
+    '/get':                     GetHandler,
+    '/list':                    ListHandler,
 }
 
 if __name__ == '__main__':

@@ -1,32 +1,67 @@
 <html>
-<head><title>Lead - Usage</title></head>
+<head><title>Lead - REST API Usage</title></head>
 <style>
 body {
     font-family: Helvetica, Sans-serif;
 }
+
+.page-title {
+    background: url(http://i.imgur.com/xKu5vCx.png) no-repeat;
+    height: 64px;
+    padding-left: 64px;
+    position: relative;
+}
+.page-title-content {
+    position: absolute;
+    bottom: 0;
+    margin-left: 0.75em;
+}
+.footer {
+    font-size: small;
+}
 </style>
 <body>
 
-You use this REST API with 3 different keys. You should have a read key, a
-write key and an admin key.
+<h1 class="page-title"><div class="page-title-content">Lead - REST API Usage</div></h1>
+
+<p>You use this REST API with 3 different keys. You should have an appid, a
+write key and an admin key.</p>
 <ul>
-<li>Your <strong>read key</strong> need not be kept secret or obfuscated. You
+<li>Your <strong>appid</strong> need not be kept secret or obfuscated. You
 can include this
 in javascript on your website to display scores via AJAX. In fact, this key
-is just the name of your game.</li>
+is just the name of your game and a version number.</li>
 <li>Your <strong>write key</strong> allows anyone with it to submit new scores.
 It is
 recommended that this key is compiled into your code and obfuscated if possible.
 </li>
-<li>Your <strong>admin key</strong> allows you to delete scores, add new boards
-and configure
-fields. DO NOT INCLUDE THIS IN YOUR APPLICATION. Just copy it into a text file
-so that you can configure your leaderboards when you need to.</li>
+<li>Your <strong>admin key</strong> allows you to delete scores, add new
+boards, configure fields and dump backups.
+DO NOT INCLUDE THIS IN YOUR APPLICATION. Just copy it into a text file
+so that you can refer to it to configure your leaderboards when you need to.
+</li>
 </ul>
 
+<p>Important notes:</p>
+<ul>
+<li>
 This API does not perform cheat detection; you must do that yourself. One way
 might be to set up a cronjob on a server you have access to to perform admin
 operations on your leaderboard.
+</li>
+<li>
+While I do my best to ensure the security and stability of this service, I
+cannot provide any guarantees. I recommend you take regular backups through the
+functionality the API provides.
+</li>
+<li>
+This service isn't even alpha yet. Don't expect too much. I'm not even sure I'll
+make it public.
+</li>
+</ul>
+
+<p>To request some keys for your game, contact
+<a href="mailto:bytten.games@gmail.com">bytten.games@gmail.com</a>.</p>
 
 <h2>Read operations</h2>
 
@@ -34,5 +69,9 @@ operations on your leaderboard.
 
 <h2>Admin operations</h2>
 
+<div class="footer">
+&copy; 2014 <a href="http://twitter.com/tccoxon">Tom Coxon</a> -
+<a href="http://bytten.net/">bytten.net</a>.
+</div>
 </body>
 </html>
