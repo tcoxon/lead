@@ -4,7 +4,9 @@
 body {
     font-family: Helvetica, Sans-serif;
 }
-
+code {
+    font-family: monospace;
+}
 .page-title {
     background: url(http://i.imgur.com/xKu5vCx.png) no-repeat;
     height: 64px;
@@ -19,7 +21,7 @@ body {
 .footer {
     font-size: small;
 }
-.op-title {
+.op-title, .typename, .query-ref {
     font-family: monospace;
 }
 .op-content {
@@ -46,6 +48,12 @@ table.param-table td, table.param-table th {
 .param-class {
     font-size: small;
 }
+.code-hint {
+    font-family: sans-serif;
+    font-style: italic;
+    font-size: small;
+    color: #080;
+}
 </style>
 <body>
 
@@ -62,10 +70,10 @@ is just the name of your game and a version number.</li>
 It is
 recommended that this key is compiled into your code and obfuscated if possible.
 </li>
-<li>Your <strong>admin key</strong> allows you to delete scores, add new
-boards, configure fields and dump backups.
-DO NOT INCLUDE THIS IN YOUR APPLICATION. Just copy it into a text file
-so that you can refer to it to configure your leaderboards when you need to.
+<li>Your <strong>admin key</strong> allows you to delete scores, configure fields
+and dump backups. DO NOT INCLUDE THIS IN YOUR APPLICATION. Just copy it into a
+text file so that you can refer to it to configure your leaderboards when you
+need to.
 </li>
 </ul>
 
@@ -79,7 +87,7 @@ operations on your leaderboard.
 <li>
 While I do my best to ensure the security and stability of this service, I
 cannot provide any guarantees. I recommend you take regular backups through the
-functionality the API provides.
+<a href="#dump" class="query-ref">dump</a> functionality the API provides.
 </li>
 <li>
 This service isn't even alpha yet. Don't expect too much. I'm not even sure I'll
@@ -93,7 +101,7 @@ make it public.
 
 <h2>Read operations</h2>
 
-<h3 class="op-title">GET /$$APPID/list</h3>
+<h3 class="op-title"><a id="list">GET /$$APPID/list</a></h3>
 <div class="op-content">
 <h4>List scores</h4>
 <p>Requests a list of scores.</p>
@@ -110,11 +118,34 @@ make it public.
 <td>str</td><td>fieldName</td></tr>
 
 <tr><td><div class="param-name">count</div></td>
-<td>int</td><td>How many results to return</td></tr>
+<td>int</td><td>How many results to return. Defaults to 20</td></tr>
 
 </table>
 
-<p>Example: <a href="/lenna1/list?filter=board,justhedungeons&filter=win,true&sort=duration&order=desc&count=50&filter=mods,">/lenna1/list?filter=board,justhedungeons&filter=win,true&sort=duration&order=desc&count=50&filter=mods,</a></p>
+<p>The response is a JSON array of objects for each score matching the filter:</p>
+<pre>
+[
+    {
+        'submission': ['2014-05-04 16:45:26.072783', 1399218326072], <span class="code-hint">&lt;-- the date this score was submitted</span>
+        'win': true,
+        'board': 'justthedungeons',
+        'id': 57, <span class="code-hint">&lt;-- id of the score record (used in admin ops)</span>
+        'mods': '',
+
+        <span class="code-hint">The following fields were defined via admin operations in this example:</span>
+        'completion': ['2014-05-04 16:45:26.072783', 1399218326072],
+        'duration': ['01:32:53.123', 5573123],
+        'seed': '-9253512911549523',
+        'coins': 576,
+        'artifacts': 8,
+        'playerName': 'Tom',
+        'playerId': '2345678923282359',
+        'image': 'http://i.imgur.com/doesntexist'
+    }
+]
+</pre>
+
+<p>Live example: <a href="/lenna1/list?filter=board,justhedungeons&filter=win,true&sort=duration&order=desc&count=50&filter=mods,">/lenna1/list?filter=board,justhedungeons&filter=win,true&sort=duration&order=desc&count=50&filter=mods,</a></p>
 </div>
 
 <h2>Write operations</h2>
@@ -149,6 +180,108 @@ rules.)
 </div>
 
 <h2>Admin operations</h2>
+
+<h3 class="op-title"><a id="add-field">POST /$$APPID/add-field</a></h3>
+<div class="op-content">
+<h4>Create a new field</h4>
+<p>Creates a new field that can store information in score records and
+be used to filter and sort results.</p>
+<table class="param-table">
+<tr><th width="20%">Parameter</th><th width="10%">Type</th><th>Description</th></tr>
+
+<tr><td><div class="param-name">adminKey</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>Your super-secret admin key</td></tr>
+
+<tr><td><div class="param-name">name</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>The name of your new field</td></tr>
+
+<tr><td><div class="param-name">type</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>The type of your field. See below for supported types</td></tr>
+
+</table>
+
+<p>Supported types:</p>
+<ul>
+<li><span class="typename">bool</span></li>
+<li><span class="typename">int</span></li>
+<li><span class="typename">long</span></li>
+<li><span class="typename">double</span></li>
+<li><span class="typename">str</span></li>
+<li><span class="typename">Time</span> - values are submit via POST as a <span class="typename">long</span> value representing the number of milliseconds since the unix epoch, and returned in JSON responses as a pair containing a formatted text representation of the time and the <span class="typename">long</span> value: <code>['01:32:53.123', 5573123]</code></li>
+<li><span class="typename">Date</span> - values are submit via POST as a <span class="typename">long</span> value representing the number of milliseconds since the unix epoch, and returned in JSON responses as a pair containing a formatted text representation of the date and the <span class="typename">long</span> value: <code>['2014-05-04 16:45:26.072783', 1399218326072]</code></li>
+</ul>
+</div>
+
+<h3 class="op-title">POST /$$APPID/del-field</h3>
+<div class="op-content">
+<h4>Delete a field</h4>
+<p>Hides a field and its values from <a href="#list" class="query-ref">list</a> results.
+The field and all the values originally present before deletion can be restored
+by using <a href="#add-field" class="query-ref">add-field</a> with the same name and type.</p>
+<table class="param-table">
+<tr><th width="20%">Parameter</th><th width="10%">Type</th><th>Description</th></tr>
+
+<tr><td><div class="param-name">adminKey</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>Your super-secret admin key</td></tr>
+
+<tr><td><div class="param-name">name</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>The name of the field to delete</td></tr>
+
+</table>
+</div>
+
+<h3 class="op-title"><a id="del-score">POST /$$APPID/del-score</a></h3>
+<div class="op-content">
+<h4>Delete a score</h4>
+<p>Hides a score from <a href="#list" class="query-ref">list</a> results.
+The score and all its values can be restored by using
+<a href="#restore-score" class="query-ref">restore-score</a> <strong>if you still
+have the score id</strong>.</p>
+<table class="param-table">
+<tr><th width="20%">Parameter</th><th width="10%">Type</th><th>Description</th></tr>
+
+<tr><td><div class="param-name">adminKey</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>Your super-secret admin key</td></tr>
+
+<tr><td><div class="param-name">id</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>The id of the score to delete</td></tr>
+
+</table>
+</div>
+
+<h3 class="op-title"><a id="restore-score">POST /$$APPID/restore-score</a></h3>
+<div class="op-content">
+<h4>Restore a deleted a score</h4>
+<p>Brings back a score that was deleted with <a href="#del-score" class="query-ref">del-score</a>.</p>
+<table class="param-table">
+<tr><th width="20%">Parameter</th><th width="10%">Type</th><th>Description</th></tr>
+
+<tr><td><div class="param-name">adminKey</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>Your super-secret admin key</td></tr>
+
+<tr><td><div class="param-name">id</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>The id of the deleted score to restore</td></tr>
+
+</table>
+</div>
+
+<h3 class="op-title"><a id="restore-score">GET /$$APPID/dump</a></h3>
+<div class="op-content">
+<h4>Dump all scores</h4>
+<p>Dumps all deleted and undeleted scores in the database for your app in JSON
+format, along
+with all deleted and undeleted fields. You can use this to perform a backup.
+The load on the server is higher than for other queries, so please use it
+sparingly.</p>
+<table class="param-table">
+<tr><th width="20%">Parameter</th><th width="10%">Type</th><th>Description</th></tr>
+
+<tr><td><div class="param-name">adminKey</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>Your super-secret admin key</td></tr>
+
+</table>
+</div>
+
 
 <div class="footer">
 &copy; 2014 <a href="http://twitter.com/tccoxon">Tom Coxon</a> -
