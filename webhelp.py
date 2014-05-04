@@ -1,4 +1,5 @@
-import web
+import web, json
+import web.webapi as webapi
 
 
 def _zip(xs, ys):
@@ -15,9 +16,19 @@ def _mk_application_args(urlhandlers):
     handlers = {v.__name__: v for (k,v) in urlhandlers.iteritems()}
     return (urls, handlers)
 
-def application(urlhandlers):
-    return web.application(*_mk_application_args(urlhandlers))
+class _Application(web.application):
+    pass
 
+def application(urlhandlers):
+    return _Application(*_mk_application_args(urlhandlers))
+
+# Edit the error messages to return valid json:
+def _json_wrap(error_class):
+    error_class.message = json.dumps({'error': error_class.message})
+for cls in ['badrequest', 'unauthorized', 'forbidden', '_NotFound',
+        'notacceptable', 'conflict', 'gone', 'preconditionfailed',
+        'unsupportedmediatype', '_InternalError']:
+    _json_wrap(getattr(webapi, cls))
 
 if __name__ == '__main__':
     class A(object):pass

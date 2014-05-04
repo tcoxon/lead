@@ -1,5 +1,5 @@
 <html>
-<head><title>Lead - REST API Usage</title></head>
+<head><title>Lead &raquo; Leaderboard REST API Usage</title></head>
 <style>
 body {
     font-family: Helvetica, Sans-serif;
@@ -19,10 +19,37 @@ body {
 .footer {
     font-size: small;
 }
+.op-title {
+    font-family: monospace;
+}
+.op-content {
+    margin-left: 1em;
+}
+table.param-table {
+    width: 90%;
+    margin: 1em;
+    font-family: monospace;
+}
+table.param-table th {
+    text-align: left;
+    background: linear-gradient(to bottom, #DDD, #BBB);
+    border: 1px solid #CCC;
+}
+table.param-table td, table.param-table th {
+    padding: 0.4em;
+    vertical-align: top;
+}
+.param-name {
+    font-weight: bold;
+    color: #008;
+}
+.param-class {
+    font-size: small;
+}
 </style>
 <body>
 
-<h1 class="page-title"><div class="page-title-content">Lead - REST API Usage</div></h1>
+<h1 class="page-title"><div class="page-title-content">Leaderboard REST API Usage</div></h1>
 
 <p>You use this REST API with 3 different keys. You should have an appid, a
 write key and an admin key.</p>
@@ -65,7 +92,52 @@ make it public.
 
 <h2>Read operations</h2>
 
+<h3 class="op-title">GET /$$APPID/list</h3>
+<div class="op-content">
+<h4>List Scores</h4>
+Requests a list of scores.
+<table class="param-table">
+<tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+
+<tr><td><div class="param-name">filter</div><div class="param-class">multiple</div></td>
+<td>str</td><td>fieldName,value</td></tr>
+
+<tr><td><div class="param-name">order</div></td>
+<td>str</td><td>Either 'asc' or 'desc'</td></tr>
+
+<tr><td><div class="param-name">sort</div></td>
+<td>str</td><td>fieldName</td></tr>
+
+<tr><td><div class="param-name">count</div></td>
+<td>int</td><td>How many results to return</td></tr>
+
+</table>
+
+<p><a href="/lenna1/list?filter=board,justhedungeons&filter=win,1&sort=duration&order=desc&count=50">Example</a></p>
+</div>
+
 <h2>Write operations</h2>
+
+<h3 class="op-title">POST /$$APPID/add</h3>
+<div class="op-content">
+<h4>List Scores</h4>
+Requests a list of scores.
+<table class="param-table">
+<tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+
+<tr><td><div class="param-name">filter</div><div class="param-class">multiple</div></td>
+<td>str</td><td>fieldName,value</td></tr>
+
+<tr><td><div class="param-name">order</div></td>
+<td>str</td><td>Either 'asc' or 'desc'</td></tr>
+
+<tr><td><div class="param-name">sort</div></td>
+<td>str</td><td>fieldName</td></tr>
+
+<tr><td><div class="param-name">count</div></td>
+<td>int</td><td>How many results to return</td></tr>
+
+</table>
 
 <h2>Admin operations</h2>
 

@@ -5,25 +5,24 @@ import webhelp
 
 pages = web.template.render('templates/')
 
-class UsageHandler(object):
+class ReadUsageHandler(object):
     def GET(self):
         return pages.usage()
 
-class GetHandler(object):
-    def GET(self):
+class ReadListHandler(object):
+    def GET(self,appid):
         # TODO
-        i = web.input('id')
-        return 'id was {}'.format(i.id)
+        return 'hello world appid={}'.format(appid)
 
-class ListHandler(object):
-    def GET(self):
+class WriteAddHandler(object):
+    def POST(self,appid):
         # TODO
-        return "hello world"
+        return 'hello world'
 
 urls = {
-    '/':                        UsageHandler,
-    '/get':                     GetHandler,
-    '/list':                    ListHandler,
+    '/':                        ReadUsageHandler,
+    '/([^/]*)/list':            ReadListHandler,
+    '/([^/]*)/add':             WriteAddHandler,
 }
 
 if __name__ == '__main__':
