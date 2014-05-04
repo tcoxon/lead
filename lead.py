@@ -3,7 +3,6 @@ import webhelp
 
 
 pages = web.template.render('templates/')
-
 class ReadUsageHandler(object):
     def GET(self):
         webhelp.response_is_html()
@@ -20,6 +19,7 @@ class WriteAddHandler(object):
         webhelp.response_is_json()
         # TODO
         return 'hello world'
+
 
 urls = {
     '/':                        ReadUsageHandler,

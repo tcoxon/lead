@@ -1,0 +1,38 @@
+
+CREATE TABLE app (
+    appid varchar PRIMARY KEY,
+    writeKey varchar,
+    adminKey varchar
+);
+
+CREATE TABLE score (
+    id bigserial PRIMARY KEY,
+    appid varchar REFERENCES app (appid),
+    submission timestamp with time zone,
+    ip inet,
+    board varchar,
+    hidden boolean,
+    mods varchar
+);
+
+CREATE TABLE field (
+    appid varchar REFERENCES app (appid),
+    name varchar,
+    type varchar,
+    hidden boolean,
+    PRIMARY KEY (appid, name)
+);
+
+CREATE TABLE score_field (
+    id bigint REFERENCES score (id),
+    appid varchar REFERENCES app (appid),
+    name varchar,
+    value varchar,
+    FOREIGN KEY (appid, name) REFERENCES field (appid, name)
+);
+
+GRANT ALL ON TABLE app TO lead;
+GRANT ALL ON TABLE score TO lead;
+GRANT ALL ON TABLE field TO lead;
+GRANT ALL ON TABLE score_field TO lead;
+
