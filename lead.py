@@ -58,33 +58,51 @@ class App(object):
             self.writeKey, self.adminKey = row
 
 
+class AppGenericHandler(object):
+    def _generic_handler(self,appid):
+        webhelp.response_is_json()
+        try:
+            with App(appid) as app:
+                return json.dumps(self.run(app))
+        except LeadUserError as e:
+            return e.json()
+    def run(self, app):
+        return {'error': 'TODO'}
+
+class AppGETHandler(AppGenericHandler):
+    def GET(self, appid):
+        return self._generic_handler(appid)
+
+class AppPOSTHandler(AppGenericHandler):
+    def POST(self, appid):
+        return self._generic_handler(appid)
+
+
 pages = web.template.render('templates/')
 class ReadUsageHandler(object):
     def GET(self):
         webhelp.response_is_html()
         return pages.usage()
 
-class ReadListHandler(object):
-    def GET(self,appid):
-        webhelp.response_is_json()
-        try:
-            with App(appid) as app:
-                return app.writeKey
-        except LeadUserError as e:
-            return e.json()
 
-
-class WriteAddHandler(object):
-    def POST(self,appid):
-        webhelp.response_is_json()
-        # TODO
-        return 'hello world'
+class ReadListHandler(AppGETHandler): pass
+class WriteAddHandler(AppPOSTHandler): pass
+class AdminAddFieldHandler(AppPOSTHandler): pass
+class AdminDelFieldHandler(AppPOSTHandler): pass
+class AdminDelScoreHandler(AppPOSTHandler): pass
+class AdminRestoreScoreHandler(AppPOSTHandler): pass
+class AdminDumpHandler(AppGETHandler): pass
 
 
 urls = {
     '/':                        ReadUsageHandler,
     '/([^/]*)/list':            ReadListHandler,
     '/([^/]*)/add':             WriteAddHandler,
+    '/([^/]*)/add-field':       AdminAddFieldHandler,
+    '/([^/]*)/del-field':       AdminDelFieldHandler,
+    '/([^/]*)/del-score':       AdminDelScoreHandler,
+    '/([^/]*)/restore-score':   AdminRestoreScoreHandler,
+    '/([^/]*)/dump':            AdminDumpHandler,
 }
 
 if __name__ == '__main__':
