@@ -1,5 +1,5 @@
 <html>
-<head><title>Lead &raquo; Leaderboard REST API Usage</title></head>
+<head><title>Lead &raquo; REST API Reference</title></head>
 <style>
 body {
     font-family: Helvetica, Sans-serif;
@@ -57,7 +57,7 @@ table.param-table td, table.param-table th {
 </style>
 <body>
 
-<h1 class="page-title"><div class="page-title-content">Leaderboard REST API Usage</div></h1>
+<h1 class="page-title"><div class="page-title-content">REST API Reference</div></h1>
 
 <p>You use this REST API with 3 different keys. You should have an appid, a
 write key and an admin key.</p>
@@ -204,7 +204,7 @@ be used to filter and sort results.</p>
 <ul>
 <li><span class="typename">bool</span></li>
 <li><span class="typename">int</span></li>
-<li><span class="typename">long</span></li>
+<li><span class="typename">long</span> - If you plan to use Javascript, be wary of using the <span class="typename">long</span> type - Javascript treats all numbers as <span class="typename">double</span>s, and the precision is not great enough to represent all <span class="typename">long</span> values.</li>
 <li><span class="typename">double</span></li>
 <li><span class="typename">str</span></li>
 <li><span class="typename">Time</span> - values are submit via POST as a <span class="typename">long</span> value representing the number of milliseconds since the unix epoch, and returned in JSON responses as a pair containing a formatted text representation of the time and the <span class="typename">long</span> value: <code>['01:32:53.123', 5573123]</code></li>

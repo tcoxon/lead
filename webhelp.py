@@ -30,6 +30,38 @@ for cls in ['badrequest', 'unauthorized', 'forbidden', '_NotFound',
         'unsupportedmediatype', '_InternalError']:
     _json_wrap(getattr(webapi, cls))
 
+class _NoMethod(webapi.HTTPError):
+    '''A 405 Method Not Allowed error.'''
+    def __init__(self, cls=None):
+        status = '405 Method Not Allowed'
+        headers = {'Content-Type': 'application/json'}
+        methods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE']
+        if cls:
+            methods = [method for method in methods if hasattr(cls, method)]
+        headers['Allow'] = ', '.join(methods)
+        data = json.dumps({'error': 'method not allowed', 'allowed': methods})
+        webapi.HTTPError.__init__(self, status, headers, data)
+webapi.nomethod = _NoMethod
+
+# Because webapi sends errors as html!
+_real_header = webapi.header
+def _fake_header(hdr, value, unique=False):
+    if hdr == 'Content-Type':
+        _real_header(hdr, 'application/json', True)
+    else:
+        _real_header(hdr, value, unique)
+webapi.header = _fake_header
+def response_is_html():
+    _real_header('Content-Type', 'text/html')
+def response_is_json():
+    _real_header('Content-Type', 'application/json')
+_real_debugerror = web.debugerror
+def _fake_debugerror(*args, **kwargs):
+    response_is_html()
+    _real_debugerror(*args, **kwargs)
+web.debugerror = _fake_debugerror
+
+
 if __name__ == '__main__':
     class A(object):pass
     class B(object):pass
