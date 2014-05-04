@@ -85,6 +85,7 @@ functionality the API provides.
 This service isn't even alpha yet. Don't expect too much. I'm not even sure I'll
 make it public.
 </li>
+<li>String values are silently trimmed to 256 characters.</li>
 </ul>
 
 <p>To request some keys for your game, contact
@@ -94,10 +95,10 @@ make it public.
 
 <h3 class="op-title">GET /$$APPID/list</h3>
 <div class="op-content">
-<h4>List Scores</h4>
-Requests a list of scores.
+<h4>List scores</h4>
+<p>Requests a list of scores.</p>
 <table class="param-table">
-<tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+<tr><th width="20%">Parameter</th><th width="10%">Type</th><th>Description</th></tr>
 
 <tr><td><div class="param-name">filter</div><div class="param-class">multiple</div></td>
 <td>str</td><td>fieldName,value</td></tr>
@@ -113,31 +114,39 @@ Requests a list of scores.
 
 </table>
 
-<p><a href="/lenna1/list?filter=board,justhedungeons&filter=win,1&sort=duration&order=desc&count=50">Example</a></p>
+<p>Example: <a href="/lenna1/list?filter=board,justhedungeons&filter=win,true&sort=duration&order=desc&count=50&filter=mods,">/lenna1/list?filter=board,justhedungeons&filter=win,true&sort=duration&order=desc&count=50&filter=mods,</a></p>
 </div>
 
 <h2>Write operations</h2>
 
 <h3 class="op-title">POST /$$APPID/add</h3>
 <div class="op-content">
-<h4>List Scores</h4>
-Requests a list of scores.
+<h4>Submit score</h4>
+<p>Submits/adds a score to a leaderboard.</p>
 <table class="param-table">
-<tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+<tr><th width="20%">Parameter</th><th width="10%">Type</th><th>Description</th></tr>
 
-<tr><td><div class="param-name">filter</div><div class="param-class">multiple</div></td>
-<td>str</td><td>fieldName,value</td></tr>
+<tr><td><div class="param-name">writeKey</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>Your private write key</td></tr>
 
-<tr><td><div class="param-name">order</div></td>
-<td>str</td><td>Either 'asc' or 'desc'</td></tr>
+<tr><td><div class="param-name">win</div><div class="param-class">mandatory</div></td>
+<td>bool</td><td>Whether the player won or not</td></tr>
 
-<tr><td><div class="param-name">sort</div></td>
-<td>str</td><td>fieldName</td></tr>
+<tr><td><div class="param-name">board</div><div class="param-class">mandatory</div></td>
+<td>str</td><td>The ID of the board to add to</td></tr>
 
-<tr><td><div class="param-name">count</div></td>
-<td>int</td><td>How many results to return</td></tr>
+<tr><td><div class="param-name">mods</div></td>
+<td>str</td><td>What mods are installed on the game. (This scheme allows scores
+from modded games to be filtered out, but relies on mod writers obeying the
+rules.)
+</td></tr>
+
+<tr><td><div class="param-name"><em>(fieldName)</em></div>
+<div class="param-class">multiple</div></td>
+<td><em>(fieldType)</em></td><td>Submit values for your custom fields</td></tr>
 
 </table>
+</div>
 
 <h2>Admin operations</h2>
 
