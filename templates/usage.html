@@ -1,0 +1,38 @@
+<html>
+<head><title>Lead - Usage</title></head>
+<style>
+body {
+    font-family: Helvetica, Sans-serif;
+}
+</style>
+<body>
+
+You use this REST API with 3 different keys. You should have a read key, a
+write key and an admin key.
+<ul>
+<li>Your <strong>read key</strong> need not be kept secret or obfuscated. You
+can include this
+in javascript on your website to display scores via AJAX. In fact, this key
+is just the name of your game.</li>
+<li>Your <strong>write key</strong> allows anyone with it to submit new scores.
+It is
+recommended that this key is compiled into your code and obfuscated if possible.
+</li>
+<li>Your <strong>admin key</strong> allows you to delete scores, add new boards
+and configure
+fields. DO NOT INCLUDE THIS IN YOUR APPLICATION. Just copy it into a text file
+so that you can configure your leaderboards when you need to.</li>
+</ul>
+
+This API does not perform cheat detection; you must do that yourself. One way
+might be to set up a cronjob on a server you have access to to perform admin
+operations on your leaderboard.
+
+<h2>Read operations</h2>
+
+<h2>Write operations</h2>
+
+<h2>Admin operations</h2>
+
+</body>
+</html>
