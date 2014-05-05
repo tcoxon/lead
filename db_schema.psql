@@ -36,4 +36,5 @@ GRANT ALL ON TABLE app TO lead;
 GRANT ALL ON TABLE score TO lead;
 GRANT ALL ON TABLE field TO lead;
 GRANT ALL ON TABLE score_field TO lead;
+GRANT ALL ON SEQUENCE score_id_seq TO lead;
 
