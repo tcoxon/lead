@@ -399,7 +399,19 @@ class AdminAddFieldHandler(RequireAdminKey,AppPOSTHandler):
             cur.commit()
         return {}
 
-class AdminDelFieldHandler(RequireAdminKey,AppPOSTHandler): pass
+class AdminDelFieldHandler(RequireAdminKey,AppPOSTHandler):
+    def run(self,app):
+        i = web.input('name',name='')
+        if not valid_field_name(i.name):
+            raise LeadUserError('invalid field name "'+i.name+'"')
+        with app.cursor() as cur:
+            cur.execute('''
+                UPDATE field SET hidden = TRUE
+                WHERE appid = %s and name = %s''',
+                [app.appid, i.name])
+            cur.commit()
+        return {}
+
 class AdminDelScoreHandler(RequireAdminKey,AppPOSTHandler): pass
 class AdminRestoreScoreHandler(RequireAdminKey,AppPOSTHandler): pass
 class AdminDumpHandler(RequireAdminKey,AppGETHandler): pass
