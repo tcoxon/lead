@@ -26,6 +26,7 @@ class NativeField(Field):
     def __init__(self, name, type):
         super(NativeField,self).__init__(name, type, False)
 
+        self.is_native = True
         self.select_as = 'score.{name}'.format(name=name)
         self.join = None
         self.where_name = self.select_as
@@ -39,6 +40,7 @@ class AuxiliaryField(Field):
         super(AuxiliaryField,self).__init__(name, type, hidden)
         self.appid = appid
 
+        self.is_native = False
         self.select_as = 'field_{name}.value AS {name}'.format(name=name)
         self.join = '''LEFT JOIN score_field AS field_{name}
                         ON field_{name}.appid = score.appid AND
@@ -273,7 +275,11 @@ class ReadListHandler(AppGETHandler):
         filters = [(app.get_field(f),v) for (f,v) in filters]
         filters = [(f, f.type('http', v)) for (f,v) in filters]
         sort_field = app.get_field(i.sort)
+        order = i.order
+        count = i.count
+        return run_search(app, filters, order, sort_field, count)
 
+def run_search(app, filters, order, sort_field, count):
         '''
         Example giant query:
 
@@ -317,8 +323,8 @@ class ReadListHandler(AppGETHandler):
         assert sort_field is not None
         query += sort_field.where_name + ' IS NOT NULL '
         query += 'ORDER BY '+sort_field.order_name
-        assert i.order in ('asc','desc')
-        if i.order == 'asc':
+        assert order in ('asc','desc')
+        if order == 'asc':
             query += ' ASC'
         else:
             query += ' DESC'
@@ -328,7 +334,7 @@ class ReadListHandler(AppGETHandler):
         results = []
         with app.cursor() as cur:
             cur.execute(query, query_args)
-            rows = cur.fetchmany(i.count)
+            rows = cur.fetchmany(count)
             for row in rows:
                 obj = {}
                 for (field,column) in zip(fields,row):
@@ -336,7 +342,39 @@ class ReadListHandler(AppGETHandler):
                 results.append(obj)
         return results
 
-class WriteAddHandler(RequireWriteKey,AppPOSTHandler): pass
+class WriteAddHandler(RequireWriteKey,AppPOSTHandler):
+    def run(self,app):
+        i = web.input('win','board','mods', win=False,board='',mods='')
+        fields = app.get_fields()
+        natfvals = {}
+        auxfvals = []
+        for field in fields:
+            if field.name in i:
+                if field.is_native:
+                    natfvals[field.name] = field.type('http',i[field.name])
+                else:
+                    auxfvals.append((field, field.type('http',i[field.name])))
+        with app.cursor() as cur:
+            cur.execute('''
+                INSERT INTO score (appid, submission, win, ip, board, hidden, mods)
+                VALUES (%s, now(), %s, %s, %s, false, %s)''',
+                [app.appid, natfvals['win'].to_db(), web.ctx['ip'],
+                    natfvals['board'].to_db(), natfvals['mods'].to_db()])
+            cur.execute('SELECT lastval()')
+            score_id = cur.fetchone()[0]
+            for (field,value) in auxfvals:
+                cur.execute('''
+                    INSERT INTO score_field (id, appid, name, value)
+                    VALUES (%s,%s,%s,%s)''',
+                    [score_id, app.appid, field.name, field.value_to_db(value)])
+            cur.commit()
+
+        id_field = app.get_field('id')
+        results = run_search(app, [(id_field, id_field.type('db', score_id))],
+            'desc', id_field, 20)
+        assert len(results) == 1
+        return results[0]
+
 class AdminAddFieldHandler(RequireAdminKey,AppPOSTHandler): pass
 class AdminDelFieldHandler(RequireAdminKey,AppPOSTHandler): pass
 class AdminDelScoreHandler(RequireAdminKey,AppPOSTHandler): pass
