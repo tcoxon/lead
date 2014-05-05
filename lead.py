@@ -26,13 +26,34 @@ class NativeField(Field):
     def __init__(self, name, type):
         super(NativeField,self).__init__(name, type, False)
 
+        self.select_as = 'score.{name}'.format(name=name)
+        self.join = None
+        self.where_name = self.select_as
+        self.order_name = self.select_as
+    def value_to_db(self, value):
+        assert isinstance(value, FieldType)
+        return value.to_db()
+
 class AuxiliaryField(Field):
     def __init__(self, name, type, hidden, appid):
         super(AuxiliaryField,self).__init__(name, type, hidden)
         self.appid = appid
 
+        self.select_as = 'field_{name}.value AS {name}'.format(name=name)
+        self.join = '''LEFT JOIN score_field AS field_{name}
+                        ON field_{name}.appid = score.appid AND
+                           field_{name}.id = score.id AND
+                           field_{name}.name = '{name}' '''.format(name=name)
+        self.where_name = 'field_{name}.value'.format(name=name)
+        self.order_name = 'CAST(field_{name}.value AS {type})'.format(
+                name=name, type=type.sql_type)
+    def value_to_db(self, value):
+        assert isinstance(value, FieldType)
+        return value.to_db_varchar()
+
 
 class FieldType(object):
+    sql_type = None
     def __init__(self, source, value):
         super(FieldType,self).__init__()
         assert source in ('db','http')
@@ -54,57 +75,70 @@ class FieldType(object):
     def to_db_varchar(self):
         return value
 
-def basic_field_type(python_type):
+def basic_field_type(python_type,_sql_type):
     class BasicFieldType(FieldType):
+        sql_type = _sql_type
         def __init__(self, *args):
             super(BasicFieldType,self).__init__(*args)
         def is_valid(self,value):
             return isinstance(value, python_type)
         def from_db(self,value):
+            if value is None: return None
             if self.is_valid(value):
                 return value
-            assert isinstance(value,str)
+            assert isinstance(value,basestring)
             return python_type(value)
         def from_http(self, value):
+            if value is None or value == 'null': return None
             if self.is_valid(value):
                 return value
-            assert isinstance(value,str)
+            assert isinstance(value,basestring)
             return python_type(value)
         def to_json(self):
             return self.value
         def to_db(self):
             return self.value
         def to_db_varchar(self):
+            if self.value is None: return None
             return str(self.value)
     return BasicFieldType
 
-class BoolFieldType(basic_field_type(bool)): pass
-class IntFieldType(basic_field_type(int)):
+class BoolFieldType(basic_field_type(bool,'BOOLEAN')): pass
+class IntFieldType(basic_field_type(int,'INT')):
     def is_valid(self, value):
         return isinty(value)
-class LongFieldType(basic_field_type(long)):
+class LongFieldType(basic_field_type(long,'BIGINT')):
     def is_valid(self, value):
         return isinty(value)
-class DoubleFieldType(basic_field_type(float)): pass
-class StrFieldType(basic_field_type(str)):
+class DoubleFieldType(basic_field_type(float,'DOUBLE PRECISION')): pass
+class StrFieldType(basic_field_type(str,'VARCHAR')):
+    def is_valid(self,value):
+        return isinstance(value,basestring)
     def post_convert(self):
-        self.value = self.value[:256]
+        if self.value is not None:
+            self.value = self.value[:256]
 
 class DateFieldType(FieldType):
+    sql_type = 'TIMESTAMP WITH TIME ZONE'
     def from_db(self,value):
+        if value is None: return None
         if isinstance(value,datetime.datetime):
             return value
         return fromtimestamp(long(value))
     def from_http(self, value):
+        if value is None: return None
         assert isinstance(value,int) or isinstance(value,long)
         return fromtimestamp(value)
     def to_json(self):
+        if self.value is None: return None
         return [isodate(self.value), totimestamp(self.value)]
     def to_db_varchar(self):
+        if self.value is None: return None
         return str(totimestamp(self.value))
 
 class TimeFieldType(LongFieldType):
     def to_json(self):
+        if self.value is None: return None
         return [isotime(self.value), self.value]
 
 field_types = {
@@ -155,11 +189,9 @@ class App(object):
             return self._fields
         self._fields = [
             NativeField('id', LongFieldType),
-            NativeField('appid', StrFieldType),
             NativeField('submission', DateFieldType),
             NativeField('win', BoolFieldType),
             NativeField('board', StrFieldType),
-            NativeField('hidden', BoolFieldType),
             NativeField('mods', StrFieldType),
         ]
         with self.cursor() as cur:
@@ -236,8 +268,10 @@ class ReadUsageHandler(object):
 class ReadListHandler(AppGETHandler):
     def run(self, app):
         i = web.input(filter=[], order='desc', sort='submission', count=20)
-        filters = [(app.get_field(val.split(',',1)[0]),val.split(',',1)[1])
+        filters = [(val.split(',',1)[0],val.split(',',1)[1])
                 for val in i.filter]
+        filters = [(app.get_field(f),v) for (f,v) in filters]
+        filters = [(f, f.type('http', v)) for (f,v) in filters]
         sort_field = app.get_field(i.sort)
 
         '''
@@ -261,7 +295,46 @@ class ReadListHandler(AppGETHandler):
               TRUE
         ORDER BY CAST(field_coins.value AS BIGINT) DESC;
         '''
-        return 'foo'
+
+        fields = app.get_fields()
+        query = 'SELECT '
+        query_args = []
+        for (j,field) in enumerate(fields):
+            if j != 0: query += ', '
+            query += field.select_as + ' '
+
+        query += 'FROM score '
+        for field in fields:
+            if field.join is not None:
+                query += field.join + ' '
+
+        query += 'WHERE score.appid = %s AND NOT score.hidden AND '
+        query_args.append(app.appid)
+        for (field,value) in filters:
+            query += field.where_name + ' = %s AND '
+            query_args.append(field.value_to_db(value))
+
+        assert sort_field is not None
+        query += sort_field.where_name + ' IS NOT NULL '
+        query += 'ORDER BY '+sort_field.order_name
+        assert i.order in ('asc','desc')
+        if i.order == 'asc':
+            query += ' ASC'
+        else:
+            query += ' DESC'
+
+        print(query, file=sys.stderr)
+        print(query_args, file=sys.stderr)
+        results = []
+        with app.cursor() as cur:
+            cur.execute(query, query_args)
+            rows = cur.fetchmany(i.count)
+            for row in rows:
+                obj = {}
+                for (field,column) in zip(fields,row):
+                    obj[field.name] = field.type('db', column).to_json()
+                results.append(obj)
+        return results
 
 class WriteAddHandler(RequireWriteKey,AppPOSTHandler): pass
 class AdminAddFieldHandler(RequireAdminKey,AppPOSTHandler): pass
