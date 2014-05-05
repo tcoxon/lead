@@ -407,13 +407,33 @@ class AdminDelFieldHandler(RequireAdminKey,AppPOSTHandler):
         with app.cursor() as cur:
             cur.execute('''
                 UPDATE field SET hidden = TRUE
-                WHERE appid = %s and name = %s''',
+                WHERE appid = %s AND name = %s''',
                 [app.appid, i.name])
             cur.commit()
         return {}
 
-class AdminDelScoreHandler(RequireAdminKey,AppPOSTHandler): pass
-class AdminRestoreScoreHandler(RequireAdminKey,AppPOSTHandler): pass
+class AdminDelScoreHandler(RequireAdminKey,AppPOSTHandler):
+    def run(self,app):
+        i = web.input('id',id=0L)
+        with app.cursor() as cur:
+            cur.execute('''
+                UPDATE score SET hidden = TRUE
+                WHERE appid = %s AND id = %s''',
+                [app.appid, i.id])
+            cur.commit()
+        return {}
+
+class AdminRestoreScoreHandler(RequireAdminKey,AppPOSTHandler):
+    def run(self,app):
+        i = web.input('id',id=0L)
+        with app.cursor() as cur:
+            cur.execute('''
+                UPDATE score SET hidden = FALSE
+                WHERE appid = %s AND id = %s''',
+                [app.appid, i.id])
+            cur.commit()
+        return {}
+
 class AdminDumpHandler(RequireAdminKey,AppGETHandler): pass
 
 
