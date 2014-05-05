@@ -375,7 +375,30 @@ class WriteAddHandler(RequireWriteKey,AppPOSTHandler):
         assert len(results) == 1
         return results[0]
 
-class AdminAddFieldHandler(RequireAdminKey,AppPOSTHandler): pass
+class AdminAddFieldHandler(RequireAdminKey,AppPOSTHandler):
+    def run(self,app):
+        i = web.input('name','type',name='',type='')
+        if not valid_field_name(i.name):
+            raise LeadUserError('invalid field name "'+i.name+'"')
+        if i.type not in field_types:
+            raise LeadUserError('invalid field type "'+i.type+'"')
+        with app.cursor() as cur:
+            cur.execute('SELECT * FROM field WHERE appid = %s AND name = %s',
+                [app.appid, i.name])
+            if cur.rowcount > 0:
+                cur.execute('''
+                    UPDATE field
+                    SET type = %s, hidden = FALSE
+                    WHERE appid = %s AND name = %s''',
+                    [i.type, app.appid, i.name])
+            else:
+                cur.execute('''
+                    INSERT INTO field (appid, name, type, hidden)
+                    VALUES (%s, %s, %s, FALSE)''',
+                    [app.appid, i.name, i.type])
+            cur.commit()
+        return {}
+
 class AdminDelFieldHandler(RequireAdminKey,AppPOSTHandler): pass
 class AdminDelScoreHandler(RequireAdminKey,AppPOSTHandler): pass
 class AdminRestoreScoreHandler(RequireAdminKey,AppPOSTHandler): pass

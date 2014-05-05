@@ -1,4 +1,4 @@
-import random, datetime, time
+import random, datetime, time, re
 
 
 def readf(fname):
@@ -35,3 +35,6 @@ def isotime(time):
     h = time / (60*60*1000)
     return '{h:02d}:{m:02d}:{s:02d}.{millis:03d}'.format(
         h=h, m=m, s=s, millis=millis)
+
+def valid_field_name(name):
+    return re.match('^[a-zA-Z][0-9a-zA-Z_]*$',name) and len(name) < 64
