@@ -1,5 +1,5 @@
 from __future__ import print_function
-import web, json, sys
+import web, json, sys, datetime
 import psycopg2 as pg2
 import webhelp
 from leadutil import *
@@ -15,6 +15,109 @@ class LeadUserError(Exception):
         return json.dumps({'error': self.message})
 
 
+class Field(object):
+    def __init__(self, name, type, hidden):
+        super(Field,self).__init__()
+        self.name = name
+        self.type = type
+        self.hidden = hidden
+
+class NativeField(Field):
+    def __init__(self, name, type):
+        super(NativeField,self).__init__(name, type, False)
+
+class AuxiliaryField(Field):
+    def __init__(self, name, type, hidden, appid):
+        super(AuxiliaryField,self).__init__(name, type, hidden)
+        self.appid = appid
+
+
+class FieldType(object):
+    def __init__(self, source, value):
+        super(FieldType,self).__init__()
+        assert source in ('db','http')
+        if source == 'db':
+            self.value = self.from_db(value)
+        else:
+            assert source == 'http'
+            self.value = self.from_http(value)
+        self.post_convert()
+    def post_convert(self): pass
+    def from_db(self, value):
+        return value
+    def from_http(self, value):
+        return value
+    def to_json(self):
+        return value
+    def to_db(self):
+        return value
+    def to_db_varchar(self):
+        return value
+
+def basic_field_type(python_type):
+    class BasicFieldType(FieldType):
+        def __init__(self, *args):
+            super(BasicFieldType,self).__init__(*args)
+        def is_valid(self,value):
+            return isinstance(value, python_type)
+        def from_db(self,value):
+            if self.is_valid(value):
+                return value
+            assert isinstance(value,str)
+            return python_type(value)
+        def from_http(self, value):
+            if self.is_valid(value):
+                return value
+            assert isinstance(value,str)
+            return python_type(value)
+        def to_json(self):
+            return self.value
+        def to_db(self):
+            return self.value
+        def to_db_varchar(self):
+            return str(self.value)
+    return BasicFieldType
+
+class BoolFieldType(basic_field_type(bool)): pass
+class IntFieldType(basic_field_type(int)):
+    def is_valid(self, value):
+        return isinty(value)
+class LongFieldType(basic_field_type(long)):
+    def is_valid(self, value):
+        return isinty(value)
+class DoubleFieldType(basic_field_type(float)): pass
+class StrFieldType(basic_field_type(str)):
+    def post_convert(self):
+        self.value = self.value[:256]
+
+class DateFieldType(FieldType):
+    def from_db(self,value):
+        if isinstance(value,datetime.datetime):
+            return value
+        return fromtimestamp(long(value))
+    def from_http(self, value):
+        assert isinstance(value,int) or isinstance(value,long)
+        return fromtimestamp(value)
+    def to_json(self):
+        return [isodate(self.value), totimestamp(self.value)]
+    def to_db_varchar(self):
+        return str(totimestamp(self.value))
+
+class TimeFieldType(LongFieldType):
+    def to_json(self):
+        return [isotime(self.value), self.value]
+
+field_types = {
+    'bool': BoolFieldType,
+    'int': IntFieldType,
+    'long': LongFieldType,
+    'double': DoubleFieldType,
+    'str': StrFieldType,
+    'Date': DateFieldType,
+    'Time': TimeFieldType,
+}
+
+
 class App(object):
     def __init__(self, appid):
         self.appid = appid
@@ -24,6 +127,7 @@ class App(object):
             password=readf(_DB_PASSWORD_PATH).strip(),
             host='127.0.0.1')
         self.read_app_record()
+        self._fields = None
 
     def __enter__(self):
         return self
@@ -45,6 +149,36 @@ class App(object):
             def commit(self):
                 db.commit()
         return WrappedCursor(db.cursor())
+    
+    def get_fields(self):
+        if self._fields is not None:
+            return self._fields
+        self._fields = [
+            NativeField('id', LongFieldType),
+            NativeField('appid', StrFieldType),
+            NativeField('submission', DateFieldType),
+            NativeField('win', BoolFieldType),
+            NativeField('board', StrFieldType),
+            NativeField('hidden', BoolFieldType),
+            NativeField('mods', StrFieldType),
+        ]
+        with self.cursor() as cur:
+            cur.execute(
+                'SELECT appid,name,type,hidden FROM field WHERE appid = %s '+
+                    'AND NOT hidden',
+                [self.appid])
+            for row in cur.fetchall():
+                appid,name,type,hidden = row
+                self._fields.append(AuxiliaryField(name, field_types[type], hidden,
+                        appid))
+        return self._fields
+
+    def get_field(self, field_name):
+        fields = self.get_fields()
+        for field in fields:
+            if field.name == field_name:
+                return field
+        return None
 
     def read_app_record(self):
         with self.cursor() as cur:
@@ -99,7 +233,36 @@ class ReadUsageHandler(object):
         return pages.usage()
 
 
-class ReadListHandler(AppGETHandler): pass
+class ReadListHandler(AppGETHandler):
+    def run(self, app):
+        i = web.input(filter=[], order='desc', sort='submission', count=20)
+        filters = [(app.get_field(val.split(',',1)[0]),val.split(',',1)[1])
+                for val in i.filter]
+        sort_field = app.get_field(i.sort)
+
+        '''
+        Example giant query:
+
+        SELECT score.id,
+               submission,
+               win,
+               board,
+               mods,
+               field_coins.value AS coins
+        FROM score
+            LEFT JOIN score_field AS field_coins 
+                ON field_coins.appid = score.appid AND
+                   field_coins.id = score.id AND
+                   field_coins.name = 'coins' 
+        WHERE score.appid = 'lenna1' AND
+              score.board = 'foobar' AND
+              NOT score.hidden AND
+              field_coins.value IS NOT NULL AND
+              TRUE
+        ORDER BY CAST(field_coins.value AS BIGINT) DESC;
+        '''
+        return 'foo'
+
 class WriteAddHandler(RequireWriteKey,AppPOSTHandler): pass
 class AdminAddFieldHandler(RequireAdminKey,AppPOSTHandler): pass
 class AdminDelFieldHandler(RequireAdminKey,AppPOSTHandler): pass
