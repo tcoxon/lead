@@ -8,7 +8,7 @@ CREATE TABLE app (
 CREATE TABLE score (
     id bigserial PRIMARY KEY,
     appid varchar REFERENCES app (appid),
-    submission timestamp with time zone,
+    submission TIMESTAMP WITH TIME ZONE,
     win boolean,
     ip inet,
     board varchar,

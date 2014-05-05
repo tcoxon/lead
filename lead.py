@@ -434,7 +434,30 @@ class AdminRestoreScoreHandler(RequireAdminKey,AppPOSTHandler):
             cur.commit()
         return {}
 
-class AdminDumpHandler(RequireAdminKey,AppGETHandler): pass
+def _filter_timestamps(rows):
+    for (i,row) in enumerate(rows):
+        rows[i] = row = list(row)
+        for (j,val) in enumerate(row):
+            if isinstance(val,datetime.datetime):
+                row[j] = totimestamp(val)
+    return rows
+
+def _dictify_results(description, results):
+    return [dict(zip([c.name for c in description], row))
+                for row in results]
+
+class AdminDumpHandler(RequireAdminKey,AppGETHandler):
+    def run(self,app):
+        results = {}
+        with app.cursor() as cur:
+            cur.execute('SELECT * FROM score WHERE appid = %s', [app.appid])
+            results['score'] = _dictify_results(cur.description,
+                    _filter_timestamps(cur.fetchall()))
+            cur.execute('SELECT * FROM field WHERE appid = %s', [app.appid])
+            results['field'] = _dictify_results(cur.description, cur.fetchall())
+            cur.execute('SELECT * FROM score_field WHERE appid = %s', [app.appid])
+            results['score_field'] = _dictify_results(cur.description,cur.fetchall())
+        return results
 
 
 urls = {
