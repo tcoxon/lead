@@ -276,7 +276,7 @@ class ReadListHandler(AppGETHandler):
         filters = [(f, f.type('http', v)) for (f,v) in filters]
         sort_field = app.get_field(i.sort)
         order = i.order
-        count = i.count
+        count = int(i.count)
         return run_search(app, filters, order, sort_field, count)
 
 def run_search(app, filters, order, sort_field, count):
