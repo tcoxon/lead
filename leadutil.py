@@ -17,7 +17,7 @@ def isinty(x):
 
 def fromtimestamp(ts):
     assert isinty(ts)
-    return datetime.datetime.fromtimestamp(long(ts)*1000L)
+    return datetime.datetime.fromtimestamp(long(ts)/1000.0)
 
 def totimestamp(dt):
     assert isinstance(dt, datetime.datetime)

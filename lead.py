@@ -130,6 +130,8 @@ class DateFieldType(FieldType):
         return fromtimestamp(long(value))
     def from_http(self, value):
         if value is None: return None
+        if isinstance(value,basestring):
+            value = long(value)
         assert isinstance(value,int) or isinstance(value,long)
         return fromtimestamp(value)
     def to_json(self):
