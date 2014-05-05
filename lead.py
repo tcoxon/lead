@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from __future__ import print_function
 import web, json, sys, datetime
 import psycopg2 as pg2
