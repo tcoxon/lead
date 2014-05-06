@@ -97,8 +97,9 @@ make it public.
 <li>String values are silently trimmed to 256 characters.</li>
 </ul>
 
-<p>To request some keys for your game, contact
-<a href="mailto:$admin_email">$admin_email</a>.</p>
+$if admin_email is not None:
+    <p>To request some keys for your game, contact
+    <a href="mailto:$admin_email">$admin_email</a>.</p>
 
 <h2>Read operations</h2>
 
@@ -146,7 +147,7 @@ make it public.
 ]
 </pre>
 
-<p>Live example: <a href="/lenna-dev1/list?filter=board,justthedungeons&filter=win,true&sort=duration&order=desc&count=50&filter=mods,">/lenna-dev1/list?filter=board,justthedungeons&filter=win,true&sort=duration&order=desc&count=50&filter=mods,</a></p>
+<p>Live example: <a href="http://lead.bytten.net/v1/lenna-dev1/list?filter=board,justthedungeons&filter=win,true&sort=duration&order=desc&count=10&filter=mods,">http://lead.bytten.net/v1/lenna-dev1/list?filter=board,justthedungeons&filter=win,true&sort=duration&order=desc&count=10&filter=mods,</a></p>
 </div>
 
 <h2>Write operations</h2>
