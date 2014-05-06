@@ -1,0 +1,13 @@
+{
+    "database": {
+        "kind":                 "postgres",
+        "dbname":               "lead",
+        "user":                 "lead",
+        "password":             "changeme",
+        "host":                 "127.0.0.1"
+    },
+    "misc": {
+        "show_usage":           true,
+        "admin_email":          "bytten.games@gmail.com"
+    }
+}

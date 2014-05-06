@@ -2,7 +2,8 @@
 CREATE TABLE app (
     appid varchar PRIMARY KEY,
     writeKey varchar,
-    adminKey varchar
+    adminKey varchar,
+    contact varchar
 );
 
 CREATE TABLE score (
