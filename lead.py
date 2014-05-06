@@ -5,8 +5,9 @@ import psycopg2 as pg2
 import webhelp
 from leadutil import *
 
-# Config stuff. You'll need to change this to make it work:
-_DB_PASSWORD_PATH = '/home/tomc/.lead-db-pass'
+
+# Read the server configuration file:
+config = json.loads(readf('config.json'))
 
 
 class LeadUserError(Exception):
@@ -160,11 +161,12 @@ field_types = {
 class App(object):
     def __init__(self, appid):
         self.appid = appid
+        assert config['database']['kind'] == 'postgres'
         self.db = pg2.connect(
-            database='lead',
-            user='lead',
-            password=readf(_DB_PASSWORD_PATH).strip(),
-            host='127.0.0.1')
+            database=config['database']['dbname'],
+            user=config['database']['user'],
+            password=config['database']['password'],
+            host=config['database']['host'])
         self.read_app_record()
         self._fields = None
 
@@ -267,7 +269,7 @@ pages = web.template.render('templates/')
 class ReadUsageHandler(object):
     def GET(self):
         webhelp.response_is_html()
-        return pages.usage()
+        return pages.usage(config['misc']['admin_email'])
 
 
 class ReadListHandler(AppGETHandler):
@@ -464,7 +466,6 @@ class AdminDumpHandler(RequireAdminKey,AppGETHandler):
 
 
 urls = {
-    '/':                        ReadUsageHandler,
     '/([^/]*)/list':            ReadListHandler,
     '/([^/]*)/add':             WriteAddHandler,
     '/([^/]*)/add-field':       AdminAddFieldHandler,
@@ -473,6 +474,10 @@ urls = {
     '/([^/]*)/restore-score':   AdminRestoreScoreHandler,
     '/([^/]*)/dump':            AdminDumpHandler,
 }
+
+if config['misc']['show_usage']:
+    urls['/'] = ReadUsageHandler
+
 
 if __name__ == '__main__':
     web.config.debug = False
