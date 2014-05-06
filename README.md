@@ -8,6 +8,19 @@ get much traffic, you can use the instance on
 [lead.bytten.net](http://lead.bytten.net/v1/) -- just send me an email at
 [bytten.games@gmail.com](mailto:bytten.games@gmail.com).
 
+If lead seems overkill, maybe you'll be interested in using
+[dreamlo](http://dreamlo.com). It looked pretty nice to me, but lacked some big
+features I wanted.
+
+## Features
+
+* One instance of lead can serve any number of leaderboards for any number of
+games you want it to.
+* Simple REST API for listing scores with filtering and sorting on arbitrary
+fields. Submitting new scores is just as simple.
+* Add arbitrary fields to your score entries. Want to send the player's blood
+type along with their score and sort the results by it? Sure, why not!
+
 ## Dependencies
 
 * Python 2.7
@@ -144,6 +157,25 @@ instance of lead, or see [here](http://lead.bytten.net/v1/).
 Other general pointers:
 
 * Make sure your games' players agree to a suitable privacy policy.
+
+## Contributions
+
+I'm happy to take pull requests. Here are some things I think would have high
+value:
+
+* Bug fixes (no known bugs at the moment though)
+* Unit tests
+* Support for other databases (e.g. Maria/MySQL)
+* Install scripts
+* A script for adding new games
+* Reference frontend (e.g. a web page that loads scores for a leaderboard via
+AJAX and displays them in a HTML table)
+* Example games
+
+But I will consider any BSD-3-licensed patches you want to throw my way as long
+as they doesn't involve XML ;)
+
+Bug reports and complaints are good too!
 
 ## FAQ
 
