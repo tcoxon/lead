@@ -14,7 +14,8 @@ CREATE TABLE score (
     ip inet,
     board varchar,
     hidden boolean,
-    mods varchar
+    mods varchar,
+    cheats varchar
 );
 
 CREATE TABLE field (

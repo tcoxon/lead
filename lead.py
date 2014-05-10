@@ -200,6 +200,7 @@ class App(object):
             NativeField('win', BoolFieldType),
             NativeField('board', StrFieldType),
             NativeField('mods', StrFieldType),
+            NativeField('cheats', StrFieldType),
         ]
         with self.cursor() as cur:
             cur.execute(

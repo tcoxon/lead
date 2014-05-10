@@ -135,6 +135,7 @@ $if admin_email is not None:
         'win': true,
         'board': 'justthedungeons',
         'mods': '',
+        'cheats': '',
 
         <span class="code-hint">The following fields were defined via admin operations in this example:</span>
         'completion': ['2014-05-04 16:45:26.072', 1399218326072],
@@ -174,6 +175,12 @@ $if admin_email is not None:
 <td>str</td><td>What mods are installed on the game. (This scheme allows scores
 from modded games to be filtered out, but relies on mod writers obeying the
 rules.)
+</td></tr>
+
+<tr><td><div class="param-name">cheats</div></td>
+<td>str</td><td>What cheats were active while playing. (If your game has cheats,
+it can be useful to submit this value with the score so that it can be filtered
+out.)
 </td></tr>
 
 <tr><td><div class="param-name"><em>(fieldName)</em></div>
