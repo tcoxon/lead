@@ -22,6 +22,11 @@ class _Application(web.application):
 def application(urlhandlers):
     return _Application(*_mk_application_args(urlhandlers))
 
+def allow_cross_origin():
+    # Allow cross-origin requests so that results may be obtained by
+    # Javascript apps on other domains
+    web.header('Access-Control-Allow-Origin', '*')
+
 # Edit the error messages to return valid json:
 def _json_wrap(error_class):
     error_class.message = json.dumps({'error': error_class.message})

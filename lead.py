@@ -234,6 +234,7 @@ class App(object):
 class AppGenericHandler(object):
     def _generic_handler(self,appid):
         webhelp.response_is_json()
+        webhelp.allow_cross_origin()
         try:
             with App(appid) as app:
                 self.check_keys(app)
