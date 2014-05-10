@@ -363,10 +363,11 @@ class WriteAddHandler(RequireWriteKey,AppPOSTHandler):
                     auxfvals.append((field, field.type('http',i[field.name])))
         with app.cursor() as cur:
             cur.execute('''
-                INSERT INTO score (appid, submission, win, ip, board, hidden, mods)
-                VALUES (%s, now(), %s, %s, %s, false, %s)''',
+                INSERT INTO score (appid, submission, win, ip, board, hidden, mods, cheats)
+                VALUES (%s, now(), %s, %s, %s, false, %s, %s)''',
                 [app.appid, natfvals['win'].to_db(), web.ctx['ip'],
-                    natfvals['board'].to_db(), natfvals['mods'].to_db()])
+                    natfvals['board'].to_db(), natfvals['mods'].to_db(),
+                    natfvals['cheats'].to_db()])
             cur.execute('SELECT lastval()')
             score_id = cur.fetchone()[0]
             for (field,value) in auxfvals:
