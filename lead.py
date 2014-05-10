@@ -351,7 +351,7 @@ def run_search(app, filters, order, sort_field, count):
 
 class WriteAddHandler(RequireWriteKey,AppPOSTHandler):
     def run(self,app):
-        i = web.input('win','board','mods', win=False,board='',mods='')
+        i = web.input('win','board','mods','cheats', win=False,board='',mods='',cheats='')
         fields = app.get_fields()
         natfvals = {}
         auxfvals = []
