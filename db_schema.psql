@@ -8,7 +8,7 @@ CREATE TABLE app (
 
 CREATE TABLE score (
     id bigserial PRIMARY KEY,
-    appid varchar REFERENCES app (appid),
+    appid varchar REFERENCES app (appid) ON UPDATE CASCADE,
     submission TIMESTAMP WITH TIME ZONE,
     win boolean,
     ip inet,
@@ -19,7 +19,7 @@ CREATE TABLE score (
 );
 
 CREATE TABLE field (
-    appid varchar REFERENCES app (appid),
+    appid varchar REFERENCES app (appid) ON UPDATE CASCADE,
     name varchar,
     type varchar,
     hidden boolean,
@@ -27,11 +27,11 @@ CREATE TABLE field (
 );
 
 CREATE TABLE score_field (
-    id bigint REFERENCES score (id),
-    appid varchar REFERENCES app (appid),
+    id bigint REFERENCES score (id) ON UPDATE CASCADE,
+    appid varchar REFERENCES app (appid) ON UPDATE CASCADE,
     name varchar,
     value varchar,
-    FOREIGN KEY (appid, name) REFERENCES field (appid, name)
+    FOREIGN KEY (appid, name) REFERENCES field (appid, name) ON UPDATE CASCADE
 );
 
 GRANT ALL ON TABLE app TO lead;
