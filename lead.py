@@ -93,7 +93,9 @@ def basic_field_type(python_type,_sql_type,_default):
             if self.is_valid(value):
                 return value
             assert isinstance(value,basestring)
-            return python_type(value)
+            return python_type(self.varchar_adapter(value))
+        def varchar_adapter(self,value):
+            return value
         def from_http(self, value):
             if value is None or value == 'null': return None
             if self.is_valid(value):
@@ -109,7 +111,10 @@ def basic_field_type(python_type,_sql_type,_default):
             return str(self.value)
     return BasicFieldType
 
-class BoolFieldType(basic_field_type(bool,'BOOLEAN',False)): pass
+class BoolFieldType(basic_field_type(bool,'BOOLEAN',False)):
+    def varchar_adapter(self,value):
+        if value == 'False': return False
+        return value
 class IntFieldType(basic_field_type(int,'INT',0)):
     def is_valid(self, value):
         return isinty(value)
