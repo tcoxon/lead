@@ -58,6 +58,7 @@ class AuxiliaryField(Field):
 
 class FieldType(object):
     sql_type = None
+    default = None
     def __init__(self, source, value):
         super(FieldType,self).__init__()
         assert source in ('db','http')
@@ -79,9 +80,10 @@ class FieldType(object):
     def to_db_varchar(self):
         return value
 
-def basic_field_type(python_type,_sql_type):
+def basic_field_type(python_type,_sql_type,_default):
     class BasicFieldType(FieldType):
         sql_type = _sql_type
+        default = _default
         def __init__(self, *args):
             super(BasicFieldType,self).__init__(*args)
         def is_valid(self,value):
@@ -107,15 +109,15 @@ def basic_field_type(python_type,_sql_type):
             return str(self.value)
     return BasicFieldType
 
-class BoolFieldType(basic_field_type(bool,'BOOLEAN')): pass
-class IntFieldType(basic_field_type(int,'INT')):
+class BoolFieldType(basic_field_type(bool,'BOOLEAN',False)): pass
+class IntFieldType(basic_field_type(int,'INT',0)):
     def is_valid(self, value):
         return isinty(value)
-class LongFieldType(basic_field_type(long,'BIGINT')):
+class LongFieldType(basic_field_type(long,'BIGINT',0)):
     def is_valid(self, value):
         return isinty(value)
-class DoubleFieldType(basic_field_type(float,'DOUBLE PRECISION')): pass
-class StrFieldType(basic_field_type(str,'VARCHAR')):
+class DoubleFieldType(basic_field_type(float,'DOUBLE PRECISION',0.0)): pass
+class StrFieldType(basic_field_type(str,'VARCHAR','')):
     def is_valid(self,value):
         return isinstance(value,basestring)
     def post_convert(self):
@@ -124,6 +126,7 @@ class StrFieldType(basic_field_type(str,'VARCHAR')):
 
 class DateFieldType(FieldType):
     sql_type = 'TIMESTAMP WITH TIME ZONE'
+    default = fromtimestamp(0)
     def from_db(self,value):
         if value is None: return None
         if isinstance(value,datetime.datetime):
@@ -143,6 +146,7 @@ class DateFieldType(FieldType):
         return str(totimestamp(self.value))
 
 class TimeFieldType(LongFieldType):
+    default = fromtimestamp(0)
     def to_json(self):
         if self.value is None: return None
         return [isotime(self.value), self.value]
@@ -354,13 +358,13 @@ class WriteAddHandler(RequireWriteKey,AppPOSTHandler):
         i = web.input('win','board','mods','cheats', win=False,board='',mods='',cheats='')
         fields = app.get_fields()
         natfvals = {}
-        auxfvals = []
+        auxfvals = {}
         for field in fields:
             if field.name in i:
                 if field.is_native:
                     natfvals[field.name] = field.type('http',i[field.name])
                 else:
-                    auxfvals.append((field, field.type('http',i[field.name])))
+                    auxfvals[field.name] = field.type('http',i[field.name])
         with app.cursor() as cur:
             cur.execute('''
                 INSERT INTO score (appid, submission, win, ip, board, hidden, mods, cheats)
@@ -370,7 +374,12 @@ class WriteAddHandler(RequireWriteKey,AppPOSTHandler):
                     natfvals['cheats'].to_db()])
             cur.execute('SELECT lastval()')
             score_id = cur.fetchone()[0]
-            for (field,value) in auxfvals:
+            for field in fields:
+                if field.is_native: continue
+                if field.name in auxfvals:
+                    value = auxfvals[field.name]
+                else:
+                    value = field.type('db',field.type.default)
                 cur.execute('''
                     INSERT INTO score_field (id, appid, name, value)
                     VALUES (%s,%s,%s,%s)''',
