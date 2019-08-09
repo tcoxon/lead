@@ -1,0 +1,12 @@
+[Unit]
+Description=RESTful Leaderboard API
+
+[Service]
+Type=simple
+WorkingDirectory=/path/to/lead/docker/
+ExecStart=/path/to/lead/docker/start-blocking.sh
+ExecStop=
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

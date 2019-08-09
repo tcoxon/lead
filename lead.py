@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import web, json, sys, datetime
+import web, json, sys, datetime, os
 import psycopg2 as pg2
 import webhelp
 from leadutil import *
@@ -175,7 +175,7 @@ class App(object):
             database=config['database']['dbname'],
             user=config['database']['user'],
             password=config['database']['password'],
-            host=config['database']['host'])
+            host=os.getenv('DB_HOST') or config['database']['host'])
         self.read_app_record()
         self._fields = None
 
