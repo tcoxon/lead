@@ -85,7 +85,7 @@ python lead.py 5001
 That will start serving the API on
 [http://localhost:5001](http://localhost:5001).
 
-For a public-facing apache2 server, you can safely run it as a CGI script using
+For a public-facing apache2 server, you can run it as a CGI script using
 the `ScriptAliasMatch` directive in your config file in
 /etc/apache2/sites-enabled/. For example to run it on a subdomain called 'lead':
 
@@ -100,6 +100,9 @@ the `ScriptAliasMatch` directive in your config file in
 Make sure the directory containing lead.py is not public, as that contains your
 config.json containing your password! The `ScriptAliasMatch` directive is there
 to execute lead.py without making the directory public.
+
+Alternatively, the `docker/build.sh` script will build an example docker
+container with lighttpd to serve lead with FastCGI on port 5001.
 
 It's all built on top of web.py, so if you like you can follow the instructions
 [here](http://webpy.org/install) instead. Just make sure what you do doesn't
