@@ -64,11 +64,12 @@ $ psql -f db_schema.psql lead
 Lead reads its configuration from a file 'config.json' located in the same
 directory as the script.
 
-1. Edit this JSON file to set your database password.
-2. Decide whether to show the usage / API reference page (example:
+1. Copy and rename config.example.json to config.json. 
+2. Edit this JSON file to set your database password.
+3. Decide whether to show the usage / API reference page (example:
 [http://lead.bytten.net/v1/](http://lead.bytten.net/v1/)). If you don't want to show
 this, set the `misc.show_usage` value to `false`.
-3. If you are showing the usage page, change the `misc.admin_email` property
+4. If you are showing the usage page, change the `misc.admin_email` property
 to contain your email address. If you would prefer not to display contact
 details on your usage page, just set it to `null` (not quoted) and it will not
 be sent to the browser.
@@ -186,4 +187,3 @@ the query/command expects.
 
 I recommend checking out Mashape's awesome open source library,
 [unirest](http://unirest.io/) which simplifies this.
-
