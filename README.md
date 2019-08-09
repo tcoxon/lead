@@ -73,9 +73,9 @@ to contain your email address. If you would prefer not to display contact
 details on your usage page, just set it to `null` (not quoted) and it will not
 be sent to the browser.
 
-### Serving
+### Deploying
 
-There are two ways to start serving pages. For local development, it is most
+There are several ways to start serving pages. For local development, it is most
 convenient to run the lead.py script directly:
 
 ```bash
@@ -105,8 +105,8 @@ Alternatively, the `docker/build.sh` script will build an example docker
 container with lighttpd to serve lead with FastCGI on port 5001.
 
 It's all built on top of web.py, so if you like you can follow the instructions
-[here](http://webpy.org/install) instead. Just make sure what you do doesn't
-make config.json publicly readable!
+[here](http://webpy.org/install) instead. The only thing to look out for is to
+make sure you don't make config.json publicly readable!
 
 ## Adding games
 
@@ -166,19 +166,16 @@ Other general pointers:
 I'm happy to take pull requests. Here are some things I think would have high
 value:
 
-* Bug fixes (no known bugs at the moment though)
+* Bug fixes
 * Unit tests
 * Support for other databases (e.g. Maria/MySQL)
 * Install scripts
-* A script for adding new games
+* Automation scripts
 * Reference frontend (e.g. a web page that loads scores for a leaderboard via
 AJAX and displays them in a HTML table)
-* Example games
+* Example code showing its use in games
 
-But I will consider any BSD-3-licensed patches you want to throw my way as long
-as they doesn't involve XML ;)
-
-Bug reports and complaints are good too!
+Bug reports are good too!
 
 ## FAQ
 
