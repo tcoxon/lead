@@ -23,10 +23,9 @@ type along with their score and sort the results by it? Sure, why not!
 
 ## Dependencies
 
-* Python 2.7
-* web.py -- on Ubuntu you can install this with `sudo pip install web.py`
+* Python 2.7+
+* Modules: web.py, psycopg2 -- these can be installed with `pip install -r requirements.txt`
 * [Postgres](http://www.postgresql.org/download/)
-    * I'm happy to take patches adding support for other databases
 
 ## Installation
 
